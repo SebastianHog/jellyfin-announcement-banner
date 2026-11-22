@@ -1,0 +1,55 @@
+# Push a tag like v1.0.0 to build the plugin and publish a release.
+# The release contains the plugin zip and a manifest.json that Jellyfin can use as a plugin repository.
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}.0"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          dotnet publish Jellyfin.Plugin.AnnouncementBanner -c Release -o publish \
+            -p:AssemblyVersion="$VERSION" -p:FileVersion="$VERSION"
+
+      - name: Package
+        run: |
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          ZIP="announcement-banner_${VERSION}.zip"
+
+          mkdir pkg
+          cp publish/Jellyfin.Plugin.AnnouncementBanner.dll pkg/
+          jq --arg v "$VERSION" --arg t "$TIMESTAMP" '.version = $v | .timestamp = $t' meta.json > pkg/meta.json
+          (cd pkg && zip -q "../$ZIP" ./*)
+
+          # Jellyfin verifies the download against this MD5.
+          CHECKSUM=$(md5sum "$ZIP" | cut -d' ' -f1)
+          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/${GITHUB_REF_NAME}/${ZIP}"
+          jq --arg v "$VERSION" --arg t "$TIMESTAMP" --arg url "$URL" --arg sum "$CHECKSUM" '[{
+              guid, name, description, overview, owner, category,
+              versions: [{ version: $v, changelog, targetAbi, sourceUrl: $url, checksum: $sum, timestamp: $t }]
+            }]' meta.json > manifest.json
+
+          echo "ZIP=$ZIP" >> "$GITHUB_ENV"
+          cat manifest.json
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" "$ZIP" manifest.json \
+            --title "$GITHUB_REF_NAME" --notes "$(jq -r .changelog meta.json)"

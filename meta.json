@@ -1,0 +1,17 @@
+{
+  "category": "General",
+  "changelog": "Initial release.",
+  "description": "Shows an announcement banner at the top of the web client.",
+  "guid": "b4a53c50-2f7e-42fc-a21b-b1ad0fdab9f3",
+  "name": "Announcement Banner",
+  "overview": "Admin-configurable announcement banner",
+  "owner": "SebastianHog",
+  "targetAbi": "12.2.0.0",
+  "timestamp": "2026-11-22T00:00:00.0000000Z",
+  "version": "1.0.0.0",
+  "status": "Active",
+  "autoUpdate": false,
+  "assemblies": [
+    "Jellyfin.Plugin.AnnouncementBanner.dll"
+  ]
+}

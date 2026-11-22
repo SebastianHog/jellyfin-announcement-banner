@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Announcement Banner</title>
+</head>
+<body>
+    <div id="announcementBannerConfigPage" data-role="page" class="page type-interior pluginConfigurationPage" data-require="emby-input,emby-button,emby-select,emby-checkbox,emby-textarea">
+        <style>
+            .abPreview { margin: 0 0 2em; border-radius: 4px; overflow: hidden; }
+            .abPreviewEmpty { padding: 1em; text-align: center; opacity: .6; border: 1px dashed currentColor; border-radius: 4px; }
+            .abLinkRow { display: flex; gap: .75em; align-items: center; margin-bottom: .75em; }
+            .abLinkRow input { flex: 1 1 0; min-width: 0; }
+            .abLinkRow .abLinkWord { flex: 0 1 14em; }
+            .abColors { display: flex; flex-wrap: wrap; gap: 1.5em; margin-bottom: 1.8em; }
+            .abColor { display: flex; flex-direction: column; gap: .4em; }
+            .abColor input[type=color] { width: 5em; cursor: pointer; }
+            .abMessage { resize: vertical; min-height: 4.5em; line-height: 1.4; }
+            .abRow { display: flex; flex-wrap: wrap; gap: 1.5em; }
+            .abRow > .inputContainer, .abRow > .selectContainer { flex: 1 1 10em; }
+        </style>
+        <div data-role="content">
+            <div class="content-primary">
+                <h2 class="sectionTitle">Announcement Banner</h2>
+
+                <div class="abPreview"></div>
+
+                <form class="abForm">
+                    <div class="checkboxContainer">
+                        <label class="emby-checkbox-label">
+                            <input id="abEnabled" type="checkbox" is="emby-checkbox" />
+                            <span>Show the banner</span>
+                        </label>
+                    </div>
+
+                    <div class="inputContainer">
+                        <label class="inputLabel" for="abMessage">Message</label>
+                        <textarea id="abMessage" class="emby-input abMessage" rows="3"></textarea>
+                        <div class="fieldDescription">Plain text. Line breaks are shown as spaces.</div>
+                    </div>
+
+                    <h3 class="sectionTitle">Links</h3>
+                    <div class="fieldDescription" style="margin-bottom: 1em;">
+                        Every occurrence of the word or phrase in the message becomes a link (whole words, case-insensitive).
+                        Use a full URL like <code>https://discord.gg/...</code>, or a Jellyfin page like <code>#/details?id=...</code>.
+                        Links to other sites open in a new tab.
+                    </div>
+                    <div class="abLinks"></div>
+                    <button is="emby-button" type="button" class="raised abAddLink" style="margin: 0 0 2em;">
+                        <span>Add link</span>
+                    </button>
+
+                    <h3 class="sectionTitle">Appearance</h3>
+                    <div class="abColors">
+                        <label class="abColor"><span>Background</span><input type="color" class="emby-input" id="abBackgroundColor" /></label>
+                        <label class="abColor"><span>Text</span><input type="color" class="emby-input" id="abTextColor" /></label>
+                        <label class="abColor"><span>Links</span><input type="color" class="emby-input" id="abLinkColor" /></label>
+                    </div>
+                    <div class="abRow">
+                        <div class="inputContainer">
+                            <input is="emby-input" type="number" id="abFontSize" label="Text size (px)" min="8" max="72" />
+                        </div>
+                        <div class="inputContainer">
+                            <input is="emby-input" type="number" id="abHeight" label="Banner height (px)" min="16" max="400" />
+                            <div class="fieldDescription">Minimum height. The banner grows if the text wraps.</div>
+                        </div>
+                        <div class="selectContainer">
+                            <select is="emby-select" id="abTextAlign" label="Alignment">
+                                <option value="left">Left</option>
+                                <option value="center">Center</option>
+                                <option value="right">Right</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="checkboxContainer">
+                        <label class="emby-checkbox-label">
+                            <input id="abBold" type="checkbox" is="emby-checkbox" />
+                            <span>Bold text</span>
+                        </label>
+                    </div>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="abDismissible" type="checkbox" is="emby-checkbox" />
+                            <span>Users can close the banner</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription">A closed banner comes back when the message or links change.</div>
+                    </div>
+
+                    <div>
+                        <button is="emby-button" type="submit" class="raised button-submit block emby-button">
+                            <span>Save</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+            (function () {
+                var pluginId = 'b4a53c50-2f7e-42fc-a21b-b1ad0fdab9f3';
+
+                // Jellyfin can keep an older copy of this page in the DOM; use the newest one.
+                var pages = document.querySelectorAll('#announcementBannerConfigPage');
+                var page = pages[pages.length - 1];
+                var form = page.querySelector('.abForm');
+                var linksEl = page.querySelector('.abLinks');
+                var preview = page.querySelector('.abPreview');
+
+                function field(id) {
+                    return page.querySelector('#' + id);
+                }
+
+                function addLinkRow(link) {
+                    var row = document.createElement('div');
+                    row.className = 'abLinkRow';
+
+                    var word = document.createElement('input');
+                    word.type = 'text';
+                    word.className = 'emby-input abLinkWord';
+                    word.placeholder = 'Word or phrase';
+                    word.value = (link && link.Word) || '';
+
+                    var url = document.createElement('input');
+                    url.type = 'text';
+                    url.className = 'emby-input abLinkUrl';
+                    url.placeholder = 'https://...';
+                    url.value = (link && link.Url) || '';
+
+                    var remove = document.createElement('button');
+                    remove.type = 'button';
+                    remove.setAttribute('is', 'paper-icon-button-light');
+                    remove.className = 'paper-icon-button-light';
+                    remove.title = 'Remove';
+                    remove.innerHTML = '<span class="material-icons delete" aria-hidden="true"></span>';
+                    remove.addEventListener('click', function () {
+                        row.parentNode.removeChild(row);
+                        updatePreview();
+                    });
+
+                    row.appendChild(word);
+                    row.appendChild(url);
+                    row.appendChild(remove);
+                    linksEl.appendChild(row);
+                }
+
+                function readLinks() {
+                    var links = [];
+                    linksEl.querySelectorAll('.abLinkRow').forEach(function (row) {
+                        var word = row.querySelector('.abLinkWord').value.trim();
+                        var url = row.querySelector('.abLinkUrl').value.trim();
+                        if (word && url) {
+                            links.push({ Word: word, Url: url });
+                        }
+                    });
+                    return links;
+                }
+
+                function fillForm(config) {
+                    field('abEnabled').checked = config.Enabled;
+                    field('abMessage').value = config.Message || '';
+                    field('abBackgroundColor').value = config.BackgroundColor || '#00a4dc';
+                    field('abTextColor').value = config.TextColor || '#ffffff';
+                    field('abLinkColor').value = config.LinkColor || '#ffffff';
+                    field('abFontSize').value = config.FontSize;
+                    field('abHeight').value = config.Height;
+                    field('abTextAlign').value = config.TextAlign || 'center';
+                    field('abBold').checked = config.Bold;
+                    field('abDismissible').checked = config.Dismissible;
+
+                    linksEl.innerHTML = '';
+                    (config.Links || []).forEach(addLinkRow);
+                }
+
+                function readForm(config) {
+                    config.Enabled = field('abEnabled').checked;
+                    config.Message = field('abMessage').value;
+                    config.Links = readLinks();
+                    config.BackgroundColor = field('abBackgroundColor').value;
+                    config.TextColor = field('abTextColor').value;
+                    config.LinkColor = field('abLinkColor').value;
+                    config.FontSize = parseInt(field('abFontSize').value, 10) || 15;
+                    config.Height = parseInt(field('abHeight').value, 10) || 40;
+                    config.TextAlign = field('abTextAlign').value;
+                    config.Bold = field('abBold').checked;
+                    config.Dismissible = field('abDismissible').checked;
+                    return config;
+                }
+
+                function updatePreview() {
+                    var config = readForm({});
+                    preview.innerHTML = '';
+                    if (!window.AnnouncementBanner) {
+                        preview.innerHTML = '<div class="abPreviewEmpty">Preview unavailable: the banner script is not loaded. Restart Jellyfin and reload this page.</div>';
+                    } else if (!config.Message.trim()) {
+                        preview.innerHTML = '<div class="abPreviewEmpty">Write a message to see a preview.</div>';
+                    } else {
+                        preview.appendChild(window.AnnouncementBanner.createBanner(config));
+                    }
+                }
+
+                page.addEventListener('pageshow', function () {
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+                        fillForm(config);
+                        updatePreview();
+                        Dashboard.hideLoadingMsg();
+                    });
+                });
+
+                page.querySelector('.abAddLink').addEventListener('click', function () {
+                    addLinkRow(null);
+                    linksEl.lastChild.querySelector('input').focus();
+                });
+
+                form.addEventListener('input', updatePreview);
+                form.addEventListener('change', updatePreview);
+
+                // Links in the preview shouldn't navigate away from the settings page.
+                preview.addEventListener('click', function (e) {
+                    e.preventDefault();
+                });
+
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getPluginConfiguration(pluginId).then(function (config) {
+                        return ApiClient.updatePluginConfiguration(pluginId, readForm(config));
+                    }).then(function (result) {
+                        Dashboard.processPluginConfigurationUpdateResult(result);
+                        if (window.AnnouncementBanner) {
+                            window.AnnouncementBanner.refresh();
+                        }
+                    }).catch(function (err) {
+                        console.error('[AnnouncementBanner] saving failed', err);
+                        Dashboard.hideLoadingMsg();
+                        Dashboard.alert('Saving the banner settings failed. Check the server log.');
+                    });
+                    return false;
+                });
+            })();
+        </script>
+    </div>
+</body>
+</html>
