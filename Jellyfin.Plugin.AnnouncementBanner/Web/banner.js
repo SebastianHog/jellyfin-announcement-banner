@@ -33,7 +33,9 @@
         'body.announcementBanner-active{padding-top:var(' + HEIGHT_VAR + ',0px)!important;}',
         'body.announcementBanner-active .skinHeader,',
         'body.announcementBanner-active .MuiAppBar-positionFixed{margin-top:var(' + HEIGHT_VAR + ',0px)!important;}',
-        'body.announcementBanner-active .MuiDrawer-docked .MuiDrawer-paper{top:var(' + HEIGHT_VAR + ',0px);',
+        // Only side drawers (the dashboard menu); bottom-anchored drawers, e.g. mobile tab bars, are left alone.
+        'body.announcementBanner-active .MuiDrawer-paperAnchorDockedLeft,',
+        'body.announcementBanner-active .MuiDrawer-paperAnchorDockedRight{top:var(' + HEIGHT_VAR + ',0px);',
         'height:calc(100% - var(' + HEIGHT_VAR + ',0px));}',
         // Get out of the way during video playback.
         'body:has(>.videoPlayerContainer) #announcementBanner{display:none;}'

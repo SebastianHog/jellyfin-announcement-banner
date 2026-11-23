@@ -15,8 +15,10 @@ public class IndexHtmlInjectionMiddleware
 {
     private const string Marker = "AnnouncementBanner/banner.js";
 
-    // Relative to /web/, so it works with or without a base URL.
-    private const string ScriptTag = "<script src=\"../AnnouncementBanner/banner.js\" defer></script>";
+    // Relative to /web/, so it works with or without a base URL. The version in the URL makes browsers
+    // and caching proxies fetch the new script after a plugin update.
+    private static readonly string ScriptTag =
+        $"<script src=\"../AnnouncementBanner/banner.js?v={typeof(IndexHtmlInjectionMiddleware).Assembly.GetName().Version}\" defer></script>";
 
     private readonly RequestDelegate _next;
 
