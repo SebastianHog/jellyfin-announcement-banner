@@ -1,6 +1,6 @@
 {
   "category": "General",
-  "changelog": "Initial release.",
+  "changelog": "Fix: on mobile, tab bars pinned to the bottom of the screen (added by plugins or themes) were stretched over the whole page.",
   "description": "Shows an announcement banner at the top of the web client.",
   "guid": "b4a53c50-2f7e-42fc-a21b-b1ad0fdab9f3",
   "name": "Announcement Banner",

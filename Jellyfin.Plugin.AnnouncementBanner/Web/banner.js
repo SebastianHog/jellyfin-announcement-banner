@@ -28,9 +28,11 @@
         '.announcementBanner-close:hover,.announcementBanner-close:focus-visible{opacity:1;}',
         '#announcementBanner{position:fixed;top:0;left:0;right:0;z-index:1101;}',
         // Make room for the banner: push page content and the fixed headers down.
+        // margin-top (not top) so bars pinned to the bottom (top:auto; bottom:0), e.g. mobile tab bars
+        // added by plugins/themes, stay where they are instead of being stretched over the page.
         'body.announcementBanner-active{padding-top:var(' + HEIGHT_VAR + ',0px)!important;}',
         'body.announcementBanner-active .skinHeader,',
-        'body.announcementBanner-active .MuiAppBar-positionFixed{top:var(' + HEIGHT_VAR + ',0px)!important;}',
+        'body.announcementBanner-active .MuiAppBar-positionFixed{margin-top:var(' + HEIGHT_VAR + ',0px)!important;}',
         'body.announcementBanner-active .MuiDrawer-docked .MuiDrawer-paper{top:var(' + HEIGHT_VAR + ',0px);',
         'height:calc(100% - var(' + HEIGHT_VAR + ',0px));}',
         // Get out of the way during video playback.
