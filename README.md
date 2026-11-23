@@ -27,13 +27,14 @@ plugins folder (`<config>/plugins/`, or `/config/data/plugins/` on the linuxserv
 
 ## Releasing
 
-Bump `changelog` in `meta.json` if you like, then push a tag:
+Update `changelog` in `meta.json` if you like, then either go to **Actions → Release → Run workflow** and enter a
+version (e.g. `1.0.1`), or push a tag:
 
 ```sh
 git tag v1.0.1 && git push origin v1.0.1
 ```
 
-The GitHub Actions workflow builds the plugin (.NET 10, against the `Jellyfin.Controller` package) and publishes a
+The workflow builds the plugin (.NET 10, against the `Jellyfin.Controller` package) and publishes a
 release with the zip and an updated `manifest.json`. Jellyfin picks up the new version from the repository.
 
 ## Build locally
